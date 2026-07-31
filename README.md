@@ -13,7 +13,51 @@ in Cypher on the Samyama engine.
 - **Cross-KG bridge**: `Country.iso_code` joins to health-systems-kg and health-determinants-kg
 
 See `schema/surveillance_kg.cypher` for the full schema and `etl/` for the ingest
-pipeline (`etl.who_loader.load_who_data`).
+pipeline (`etl.who_loader`).
+
+## Documentation
+
+New here? Start with the guides:
+
+| Guide | What it covers |
+|-------|----------------|
+| **[GETTING_STARTED.md](GETTING_STARTED.md)** | prerequisites (Python ≥ 3.10) · install · run the engine (Docker) · load the graph · first query |
+| **[docs/QUERYING.md](docs/QUERYING.md)** | ask questions via **MCP (Claude)**, the **HTTP API**, or the **Samyama CLI** |
+| [schema/surveillance_kg.cypher](schema/surveillance_kg.cypher) | full node/edge schema |
+
+## Quick Start
+
+**Full walkthrough → [GETTING_STARTED.md](GETTING_STARTED.md).** Needs **Python ≥ 3.10** and **Docker**:
+
+```bash
+pip install -r requirements.txt
+docker run --rm -p 8080:8080 -p 6379:6379 public.ecr.aws/f9f6l5u4/samyama-graph:1.1.0
+```
+
+**Load — snapshot (fastest):**
+```bash
+curl -LO https://github.com/samyama-ai/samyama-graph/releases/download/kg-snapshots-v4/surveillance.sgsnap
+curl -X POST http://localhost:8080/api/tenants -H 'Content-Type: application/json' -d '{"id":"surveillance","name":"Disease Surveillance KG"}'
+curl -X POST http://localhost:8080/api/tenants/surveillance/snapshot/import -F "file=@surveillance.sgsnap"
+```
+
+**Load — from the checked-in WHO GHO data (offline, no download):**
+```bash
+python -m etl.who_loader --data-dir data --url http://localhost:8080   # → surveillance tenant
+```
+
+**Query** (Claude / HTTP / CLI) → see [docs/QUERYING.md](docs/QUERYING.md).
+
+## Use with Claude (MCP)
+
+This repo has no bespoke MCP server, but the `samyama` package ships a generic one:
+
+```bash
+samyama-mcp-serve --url http://localhost:8080 --graph surveillance                 # serve the tenant
+samyama-mcp-serve --url http://localhost:8080 --graph surveillance --list-tools     # see the tools
+```
+
+Register it with Claude and ask in natural language — full steps in **[docs/QUERYING.md](docs/QUERYING.md)**.
 
 ## Demo
 

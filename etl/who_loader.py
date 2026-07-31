@@ -23,11 +23,16 @@ from etl.helpers import (
 )
 
 
+# Default tenant/graph. Matches the published snapshot's tenant, so
+# build-from-source and the snapshot import agree.
+GRAPH = "surveillance"
+
+
 def load_who_data(
     client,
     data_dir: str,
     registry: Registry,
-    tenant: str = "default",
+    tenant: str = GRAPH,
     years: set[int] | None = None,
 ) -> dict:
     """Load WHO GHO surveillance data into the graph.
@@ -233,3 +238,39 @@ def load_who_data(
     total_edges = in_region_edges + reported_edges + report_of_edges + coverage_edges
     print(f"  Total: {total_nodes} nodes, {total_edges} edges")
     return stats
+
+
+def main(argv: list[str] | None = None) -> None:
+    """CLI entrypoint: load the shipped WHO GHO JSON into a Samyama graph.
+
+        python -m etl.who_loader --data-dir data --url http://localhost:8080
+        python -m etl.who_loader --data-dir data                 # in-memory (embedded)
+    """
+    import argparse
+
+    from samyama import SamyamaClient
+
+    parser = argparse.ArgumentParser(
+        prog="surveillance-loader",
+        description="Load WHO GHO disease-surveillance data into Samyama.",
+    )
+    parser.add_argument(
+        "--data-dir", default="data",
+        help="Directory with the WHO GHO JSON files (default: %(default)s).",
+    )
+    parser.add_argument(
+        "--url", default=None,
+        help="Connect to a running Samyama engine (default: in-memory embedded).",
+    )
+    parser.add_argument(
+        "--tenant", default=GRAPH,
+        help="Graph tenant name (default: %(default)s).",
+    )
+    args = parser.parse_args(argv)
+
+    client = SamyamaClient.connect(args.url) if args.url else SamyamaClient.embedded()
+    load_who_data(client, args.data_dir, Registry(), tenant=args.tenant)
+
+
+if __name__ == "__main__":
+    main()
