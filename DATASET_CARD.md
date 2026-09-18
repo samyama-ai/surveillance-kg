@@ -1,5 +1,5 @@
 ---
-license: unknown
+license: other
 pretty_name: surveillance-kg
 tags:
   - knowledge-graph
@@ -25,8 +25,10 @@ whether the data fits a question.
 
 ## Provenance and licence
 
-_Not recorded in this repository's README._ The upstream source and its licence
-must be stated before this dataset is redistributed or quoted.
+Apache 2.0 covers the loader. Every node comes from the **WHO Global Health Observatory**,
+which is **CC BY-NC-SA 3.0 IGO**: non-commercial, share-alike, crediting WHO. The derived
+graph inherits that whole. See [`DATA-LICENSES.md`](DATA-LICENSES.md).
+
 
 ## Reproducing
 
